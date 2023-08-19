@@ -1,0 +1,21 @@
+# enviroments
+.py
+.venv
+.env
+
+# development
+__pycache__
+.vscode
+
+# logs
+*.log
+
+# testing
+z_*
+*.ipynb
+
+# data
+*.pdf
+*.txt
+*.parquet
+*.json
