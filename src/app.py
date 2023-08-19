@@ -9,7 +9,7 @@
 import logging
 from logging.config import dictConfig
 
-from aissistant import CONFIG_LOG
+from genaikit import CONFIG_LOG
 
 dictConfig(CONFIG_LOG)
 

@@ -15,14 +15,14 @@ from openai import Embedding
 from openai.embeddings_utils import distances_from_embeddings
 from dotenv import load_dotenv
 
-from aissistant.constants import ROLES
-from aissistant.constants import MODELS
-from aissistant.constants import MODELS_EMBEDDING
-from aissistant.constants import MAX_TOKENS
-from aissistant.constants import DEBUG
+from genaikit.constants import ROLES
+from genaikit.constants import MODELS
+from genaikit.constants import MODELS_EMBEDDING
+from genaikit.constants import MAX_TOKENS
+from genaikit.constants import DEBUG
 
-from aissistant.utils import number_of_tokens
-from aissistant.utils import text_to_embeddings
+from genaikit.utils import number_of_tokens
+from genaikit.utils import text_to_embeddings
 
 
 logger = logging.getLogger('client')

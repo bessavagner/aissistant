@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "aissistant"
+name = "genaikit"
 version = "0.1.0"
 description = "AI code and general assistant powered by OpenAI"
 authors = ["Vagner Bessa <bessavagner@gmail.com>"]
 license = "None"
 readme = "README.md"
-packages = [{include = "aissistant", from = "src"}]
+packages = [{include = "genaikit", from = "src"}]
 include = [
 	{path = "src/app.py"},
 	{path = "src/cli.py"},

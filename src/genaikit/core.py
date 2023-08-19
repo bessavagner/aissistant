@@ -9,7 +9,7 @@ import logging
 
 from pathlib import Path
 
-from aissistant.constants import ROLES
+from genaikit.constants import ROLES
 
 from .base import BaseConversation
 from .base import BaseContext

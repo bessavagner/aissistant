@@ -40,28 +40,28 @@ If you are proposing a feature:
 
 ## Get Started!
 
-Ready to contribute? Here's how to set up `aissistant` for local development.
+Ready to contribute? Here's how to set up `genaikit` for local development.
 
 1. Fork the repository, clone and add remote:
    
 ```bash
-git clone --recursive https://github.com/[your-user]/aissistant.git # TODO
-git remote add upstream https://github.com/bessavagner/aissistant.git # TODO
+git clone --recursive https://github.com/[your-user]/genaikit.git # TODO
+git remote add upstream https://github.com/bessavagner/genaikit.git # TODO
 ```
 
-2. Install `aissistant` using `poetry`:
+2. Install `genaikit` using `poetry`:
 
 ```bash
 $ poetry install
 ```
 
-If you don't have poetry installed:
+or use `pip`:
 
 ```bash
 pip install poetry
 ```
 
-Note that currently `aissistant` supports Python 3.11.
+Note that currently `genaikit` supports Python 3.11.
 
 3. Use `git` (or similar) to create a branch for local development and make your changes:
 
@@ -114,5 +114,5 @@ Before you submit a pull request, check that it meets these guidelines:
 
 ## Code of Conduct
 
-Please note that the `aissistant` project is released with a
+Please note that the `genaikit` project is released with a
 Code of Conduct. By contributing to this project you agree to abide by its terms.

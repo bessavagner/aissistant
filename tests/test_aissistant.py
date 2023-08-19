@@ -1,5 +1,5 @@
 import unittest
-from aissistant.core import Conversation
+from genaikit.core import Conversation
 
 class TestBaseConversation(unittest.TestCase):
 
