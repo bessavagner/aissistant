@@ -8,7 +8,7 @@ import logging
 from logging import NullHandler
 from logging.config import dictConfig
 
-from settings import CONFIG_LOG
+from genaikit.settings import CONFIG_LOG
 
 from . import core  # The core module is the packages's API
 from . import base
