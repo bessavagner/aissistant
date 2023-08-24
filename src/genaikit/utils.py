@@ -20,6 +20,7 @@ from openai import Embedding
 from .constants import MODELS
 from .constants import MODELS_EMBEDDING
 from .constants import MAX_TOKENS
+from .constants import EMBEDDINGS_COLUMNS
 
 logger = logging.getLogger("client")
 debugger = logging.getLogger("standard")
@@ -110,8 +111,10 @@ def token_splitter(
         # data = pd.DataFrame(shortened, columns=['chunks'])
         # data['n_tokens'] = data.chunks.apply(lambda x: len(encoding.encode(x)))
         array = np.array([chunks, tokens]).T
-        data = pd.DataFrame(array, columns=('chunks', 'n_tokens',))
-        data['n_tokens'] = data['n_tokens'].astype('int')
+        data = pd.DataFrame(array, columns=(
+            EMBEDDINGS_COLUMNS[0], EMBEDDINGS_COLUMNS[1],)
+        )
+        data[EMBEDDINGS_COLUMNS[1]] = data[EMBEDDINGS_COLUMNS[1]].astype('int')
         return data
     
     raise NotImplementedError(  # TODO choose another error
@@ -264,7 +267,7 @@ def text_to_embeddings(
         text: str, model: str = MODELS[1], max_tokens: int = 500
 ):
     data = token_splitter(text, model, max_tokens)
-    data['embeddings'] = data.chunks.apply(lambda x: Embedding.create(
+    data[EMBEDDINGS_COLUMNS[2]] = data.chunks.apply(lambda x: Embedding.create(
             input=x, engine=MODELS_EMBEDDING[0]
         )['data'][0]['embedding']
     )

@@ -24,4 +24,6 @@ ROLES = (  # roles for messages objects
     'assistant'
 )  # see https://platform.openai.com/docs/guides/gpt/chat-completions-api
 
+EMBEDDINGS_COLUMNS = ('chunks', 'n_tokens', 'embeddings')
+
 DEBUG = True

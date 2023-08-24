@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.3 (24/08/2023)
+
+- update: add constants to represent embeddings table columns
+
 ## v0.2.2 (24/08/2023)
 
 - update: add class QuestionContext to init.
