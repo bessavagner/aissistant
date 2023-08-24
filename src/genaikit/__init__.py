@@ -16,6 +16,8 @@ from . import data
 from . import utils
 from . import constants
 
+from .core import QuestionContext
+
 dictConfig(CONFIG_LOG)
 
 # Set default logging handler to avoid \"No handler found\" warnings.
