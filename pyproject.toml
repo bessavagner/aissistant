@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "genaikit"
-version = "0.2.3"
+version = "0.2.4"
 description = "AI code and general assistant powered by OpenAI"
 authors = ["Vagner Bessa <bessavagner@gmail.com>"]
 license = "None"
@@ -14,7 +14,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.13"
+python = "^3.10.12"
 tiktoken = "^0.4.0"
 openai = "^0.27.8"
 python-dotenv = "^1.0.0"
@@ -38,6 +38,7 @@ autopep8 = "^2.0.2"
 ipython = "^8.14.0"
 notebook = "^6.5.4"
 flake8 = "^6.0.0"
+pytest = "^7.4.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
