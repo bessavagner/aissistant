@@ -13,9 +13,6 @@ from genaikit import CONFIG_LOG
 
 dictConfig(CONFIG_LOG)
 
-logger = logging.getLogger('client')
-report = logging.getLogger('report')
-
 class MyApp:
     def __init__(self, *args, **kwargs):
         pass
