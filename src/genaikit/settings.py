@@ -95,17 +95,17 @@ CONFIG_LOG = {
             "propagate": False,
             "disable_existing_loggers": False
         },
-        "report": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": False,
-            "disable_existing_loggers": False
-        },
-        "report_debugger": {
-            "handlers": ["file", "debug"],
-            "level": "DEBUG",
-            "propagate": False,
-            "disable_existing_loggers": False
-        },
+        # "report": {
+        #     "handlers": ["file"],
+        #     "level": "DEBUG",
+        #     "propagate": False,
+        #     "disable_existing_loggers": False
+        # },
+        # "report_debugger": {
+        #     "handlers": ["file", "debug"],
+        #     "level": "DEBUG",
+        #     "propagate": False,
+        #     "disable_existing_loggers": False
+        # },
     },
 }
