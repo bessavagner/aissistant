@@ -10,7 +10,7 @@ import logging
 
 import click
 
-from settings import HEADER
+from genaikit.settings import HEADER
 from app import MyApp
 
 logger_client = logging.getLogger('client')

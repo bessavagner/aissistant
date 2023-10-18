@@ -26,4 +26,4 @@ ROLES = (  # roles for messages objects
 
 EMBEDDINGS_COLUMNS = ('chunks', 'n_tokens', 'embeddings')
 
-DEBUG = True
+DEBUG = False

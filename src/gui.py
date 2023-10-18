@@ -1,5 +1,5 @@
-from settings import package
-from settings import HEADER
+from genaikit.settings import package
+from genaikit.settings import HEADER
 import tkinter as tk
 
 from app import MyApp
