@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "genaikit"
-version = "0.2.6"
+version = "0.2.7"
 description = "AI code and general assistant powered by OpenAI"
 authors = ["Vagner Bessa <bessavagner@gmail.com>"]
 license = "None"
@@ -10,7 +10,6 @@ include = [
 	{path = "src/app.py"},
 	{path = "src/cli.py"},
 	{path = "src/gui.py"},
-	{path = "src/settings.py"}
 ]
 
 [tool.poetry.dependencies]
