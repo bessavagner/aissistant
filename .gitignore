@@ -1,7 +1,7 @@
 # enviroments
 .py
-.venv
-.env
+.venv*
+.env*
 
 # development
 __pycache__
