@@ -39,17 +39,7 @@ CONFIG_LOG = {
                 "\n\t|──thread: %(thread)d | name: %(threadName)s"
                 "\n\t└──message: %(message)s\n"
             ),
-        },
-        "file": {
-            "format": (
-                "%(levelname)s %(asctime)s (at %(module)s.%(funcName)s in line %(lineno)d): %(message)s"
-                "\n\t|──file: %(pathname)s\n\t"
-                "\n\t|──process: %(process)d | name: %(processName)s"
-                "\n\t|──thread: %(thread)d | name: %(threadName)s\n"
-                "\n\t└──message: %(message)s\n"
-            ),
-            "datefmt": "%y-%m-%d %H:%M:%S",
-        },
+        }
     },
     "handlers": {
         "client": {
@@ -66,14 +56,7 @@ CONFIG_LOG = {
             "class": "logging.StreamHandler",
             "formatter": "debug",
             "level": "DEBUG",
-        },
-        "file": {
-            "class": "logging.FileHandler",
-            "formatter": "file",
-            "level": "DEBUG",
-            "filename": "report.log",
-            "encoding": "utf8",
-        },
+        }
     },
     "root": {"handlers": ["standard"], "level": "DEBUG"},
     "loggers": {
@@ -94,18 +77,6 @@ CONFIG_LOG = {
             "level": "DEBUG",
             "propagate": False,
             "disable_existing_loggers": False
-        },
-        # "report": {
-        #     "handlers": ["file"],
-        #     "level": "DEBUG",
-        #     "propagate": False,
-        #     "disable_existing_loggers": False
-        # },
-        # "report_debugger": {
-        #     "handlers": ["file", "debug"],
-        #     "level": "DEBUG",
-        #     "propagate": False,
-        #     "disable_existing_loggers": False
-        # },
+        }
     },
 }
