@@ -65,7 +65,7 @@ class QuestionContext:
         context = self.context.create(question, max_length=max_length)
         if not context:
             return (
-                "OpenAI: Bad gateway error (code 502). "
+                "OpenAI's server error. "
                 "Try again in a few minutes."
             )
         prompt = self.context_text.format(context, question)
