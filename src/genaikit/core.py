@@ -63,6 +63,11 @@ class QuestionContext:
 
     def answer(self, question: str, max_length=1800):
         context = self.context.create(question, max_length=max_length)
+        if not context:
+            return (
+                "OpenAI: Bad gateway error (code 502). "
+                "Try again in a few minutes."
+            )
         prompt = self.context_text.format(context, question)
         answer = self.chat.answer(prompt)
         self.history.append({
