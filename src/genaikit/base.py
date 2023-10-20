@@ -8,8 +8,6 @@ import logging
 from pathlib import Path
 
 import openai
-from openai.error import APIError
-import numpy as np
 import pandas as pd
 
 from openai import Embedding
@@ -268,14 +266,10 @@ class BaseContext:
         current_length = 0
         data = self.embeddings
         
-        question_embedding = None
-        try:
-            question_embedding = Embedding.create(
-                input=question, engine=MODELS_EMBEDDING[0]
-            )['data'][0]['embedding']
-        except APIError:
-            return False
-        
+        question_embedding = Embedding.create(
+            input=question, engine=MODELS_EMBEDDING[0]
+        )['data'][0]['embedding']
+
         data['distances'] = distances_from_embeddings(
             question_embedding,
             data['embeddings'].values,

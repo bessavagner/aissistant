@@ -9,6 +9,8 @@ import logging
 
 from pathlib import Path
 
+from openai.error import APIError
+
 from genaikit.constants import ROLES
 
 from .base import BaseConversation
@@ -62,12 +64,17 @@ class QuestionContext:
         self.history = []
 
     def answer(self, question: str, max_length=1800):
-        context = self.context.create(question, max_length=max_length)
-        if not context:
+        try:
+            context = self.context.create(question, max_length=max_length)
+        except APIError as err:
             return (
-                "OpenAI's server error. "
+                f"OpenAI's error: {err.error['message']} "
+                f"(code {err.error['code']}) "
                 "Try again in a few minutes."
             )
+        
+            # return (
+            # )
         prompt = self.context_text.format(context, question)
         answer = self.chat.answer(prompt)
         self.history.append({
