@@ -7,6 +7,8 @@
 __pycache__
 .vscode
 dist/
+.benchmarks/
+.pytest_cache/
 
 # logs
 *.log
