@@ -86,6 +86,7 @@ class BaseConversation:
 
         self.messages = []
         self.messages_backup = []
+        self.messages_summarizer = []
         self.max_tokens = dict(MAX_TOKENS)[self.model]
         self.last_response = None
 
@@ -171,6 +172,7 @@ class BaseConversation:
                     'role': ROLES[1],
                     'content': content
                 }
+                self.messages_summarizer.append(message_)
                 response = openai.ChatCompletion.create(
                             model=self.model,
                             messages=[message_],
@@ -178,6 +180,11 @@ class BaseConversation:
                         )
                 content = response.choices[0].message.content
                 self.messages[idx]['content'] = content
+                message_ = {
+                    'role': ROLES[2],
+                    'content': content
+                }
+                self.messages_summarizer.append(message_)
                 
                 if DEBUG:
                     debugger.info('Message summarized: %s', message['content'])
