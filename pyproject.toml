@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "genaikit"
-version = "0.2.9"
+version = "0.2.10"
 description = "AI code and general assistant powered by OpenAI"
 authors = ["Vagner Bessa <bessavagner@gmail.com>"]
 license = "None"

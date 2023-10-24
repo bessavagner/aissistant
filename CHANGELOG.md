@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.10 (24/10/2023)
+ - docs(QuestionContext): pass Opan Ai's APIError message and code as answer
+ - docs: change openai's error message
+ - fix(QuestionContext): handle openai's bad gateway error
+ - fix: remove unnecessary logger setting (file)
+ - fix: python and scipy compatibility
+ - update: add .env310 to .gitignore
 ## v0.2.3 (24/08/2023)
 
 - update: add constants to represent embeddings table columns
