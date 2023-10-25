@@ -92,7 +92,7 @@ class BaseConversation:
         self.max_tokens = dict(MAX_TOKENS)[self.model]
         self.last_response = None
 
-    def answer(self, prompt):
+    def answer(self, prompt, use_agent=True):
         """
         Generate a response to the given prompt.
         
@@ -102,7 +102,7 @@ class BaseConversation:
         Returns:
             str: The generated response content.
         """
-        self._update(ROLES[1], prompt)
+        self._update(ROLES[1], prompt, use_agent=use_agent)
 
         self.last_response = openai.ChatCompletion.create(
             model=self.model,
@@ -113,14 +113,14 @@ class BaseConversation:
         response_content = self.last_response.choices[0].message.content
         if DEBUG:
             debugger.info('Response: %s', response_content)
-        self._update(ROLES[2], response_content)
+        self._update(ROLES[2], response_content, use_agent=use_agent)
 
         return response_content
 
     def current_number_of_tokens(self,):
         return number_of_tokens(self.messages, self.model)
 
-    def _update(self, role: str, content: str):
+    def _update(self, role: str, content: str, use_agent=True):
 
         """
         Update the conversation with a new message.
@@ -142,59 +142,59 @@ class BaseConversation:
         }
         self.messages.append(message)
         self.messages_backup.append(message)
-        self._reduce_number_of_tokens_if_needed()
+        self._reduce_number_of_tokens_if_needed(use_agent)
 
-    def _reduce_number_of_tokens_if_needed(self,):
+    def _reduce_number_of_tokens_if_needed(self, use_agent=True):
         
         n_tokens = number_of_tokens(self.messages, self.model)
         
         if n_tokens > self.max_tokens:
             
             reduced = False
-            
-            messages = self.messages
-            if len(messages) > 1:
-                messages = messages[:-1]
-            for idx, message in enumerate(messages):
-                content = (
-                    "Make a summary of the following text"
-                    f": {message['content']}"
-                )
-                
-                if DEBUG:
-                    debugger.info(
-                        (
-                            'Maximum number of tokens exceeded. '
-                            'Summarizing message: %s'
-                        ),
-                        message['content']
+            if use_agent:
+                messages = self.messages
+                if len(messages) > 1:
+                    messages = messages[:-1]
+                for idx, message in enumerate(messages):
+                    content = (
+                        "Make a summary of the following text"
+                        f": {message['content']}"
                     )
-                
-                message_ = {
-                    'role': ROLES[1],
-                    'content': content
-                }
-                self.messages_summarizer.append(message_)
-                response = openai.ChatCompletion.create(
-                            model=self.model,
-                            messages=[message_],
-                            temperature=self.temperature
+                    
+                    if DEBUG:
+                        debugger.info(
+                            (
+                                'Maximum number of tokens exceeded. '
+                                'Summarizing message: %s'
+                            ),
+                            message['content']
                         )
-                content = response.choices[0].message.content
-                self.messages[idx]['content'] = content
-                message_ = {
-                    'role': ROLES[2],
-                    'content': content
-                }
-                self.messages_summarizer.append(message_)
+                    
+                    message_ = {
+                        'role': ROLES[1],
+                        'content': content
+                    }
+                    self.messages_summarizer.append(message_)
+                    response = openai.ChatCompletion.create(
+                                model=self.model,
+                                messages=[message_],
+                                temperature=self.temperature
+                            )
+                    content = response.choices[0].message.content
+                    self.messages[idx]['content'] = content
+                    message_ = {
+                        'role': ROLES[2],
+                        'content': content
+                    }
+                    self.messages_summarizer.append(message_)
+                    
+                    if DEBUG:
+                        debugger.info('Message summarized: %s', message['content'])
                 
-                if DEBUG:
-                    debugger.info('Message summarized: %s', message['content'])
-            
-                n_tokens = number_of_tokens(self.messages, self.model)
-                if n_tokens < self.max_tokens:
-                    reduced = True
-                    break
+                    n_tokens = number_of_tokens(self.messages, self.model)
+                    if n_tokens < self.max_tokens:
+                        reduced = True
+                        break
             
             if not reduced:
                 if len(self.messages) == 1:
