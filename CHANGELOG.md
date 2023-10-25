@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (25/10/2023)
+ - fix(base): handle error when trying to generate embeddings
+
 ## v0.2.10 (24/10/2023)
  - docs(QuestionContext): pass Opan Ai's APIError message and code as answer
  - docs: change openai's error message
