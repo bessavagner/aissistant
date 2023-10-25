@@ -2,7 +2,8 @@
 
 <!--next-version-placeholder-->
 
-## v0.3.2 (25/10/2023)
+## v0.3.1 (25/10/2023)
+ - fix: missing enumerate at base._reduce_number_of_tokens_if_needed
  - feat: add option to set a chatgpt agent to summarize converation if exceed tokens
  - fix(base): handle error when trying to generate embeddings
 
