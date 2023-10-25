@@ -2,7 +2,7 @@
 
 <!--next-version-placeholder-->
 
-## v0.3.1 (25/10/2023)
+## v0.3.2 (25/10/2023)
  - feat: add option to set a chatgpt agent to summarize converation if exceed tokens
  - fix(base): handle error when trying to generate embeddings
 
