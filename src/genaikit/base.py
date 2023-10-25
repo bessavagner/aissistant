@@ -214,7 +214,7 @@ class BaseConversation:
                             self.max_tokens,
                             self.messages[0]['content']
                         )
-                    for idx, message in self.messages:
+                    for idx, message in enumerate(self.messages):
                         if message['role'] == ROLES[1]:
                             self.messages.pop(idx)  # TODO improve history retention
                             break
