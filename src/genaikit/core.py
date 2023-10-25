@@ -63,7 +63,7 @@ class QuestionContext:
         )
         self.history = []
 
-    def answer(self, question: str, max_length=1800):
+    def answer(self, question: str, max_length=1800, use_agent=True):
         try:
             context = self.context.create(question, max_length=max_length)
         except APIError as err:
@@ -76,7 +76,7 @@ class QuestionContext:
             # return (
             # )
         prompt = self.context_text.format(context, question)
-        answer = self.chat.answer(prompt)
+        answer = self.chat.answer(prompt, use_agent=use_agent)
         self.history.append({
             'question': question,
             'answer': answer
