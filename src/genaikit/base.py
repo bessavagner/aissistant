@@ -11,7 +11,9 @@ import openai
 import pandas as pd
 
 from openai import Embedding
+from openai.error import APIError
 from openai.embeddings_utils import distances_from_embeddings
+
 from dotenv import load_dotenv
 
 from genaikit.constants import ROLES
@@ -22,7 +24,7 @@ from genaikit.constants import DEBUG
 
 from genaikit.utils import number_of_tokens
 from genaikit.utils import text_to_embeddings
-
+from .error import APIContextError
 
 logger = logging.getLogger('client')
 debugger = logging.getLogger('standard')
@@ -255,11 +257,19 @@ class BaseContext:
                     '`source` must either be a DataFrame, '
                     'Path object or a string'
                 )
-            self.embeddings = text_to_embeddings(  # TODO edit embeddings
-                source,
-                model=model,
-                max_tokens=max_tokens
-            )
+            try:
+                self.embeddings = text_to_embeddings(  # TODO edit embeddings
+                    source,
+                    model=model,
+                    max_tokens=max_tokens
+                )
+            except APIError as err:
+                message = (
+                    f"OpenAI's error: {err.error['message']} "
+                    f"(code {err.error['code']}) "
+                    "Try again in a few minutes."
+                )
+                raise APIContextError(message) from err
         return self.embeddings
 
     def save_embeddings(
