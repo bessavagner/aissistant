@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+
+## v0.3.1 (31/10/2023)
+
+ - feat(BaseContext): add embeddings as json (dict)
+ - feat: add option to send only the current message instead of the entire conversation in a 'answer' call
+
 ## v0.3.1 (25/10/2023)
  - fix: missing enumerate at base._reduce_number_of_tokens_if_needed
  - feat: add option to set a chatgpt agent to summarize converation if exceed tokens
