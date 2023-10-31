@@ -3,7 +3,7 @@
 <!--next-version-placeholder-->
 
 
-## v0.3.1 (31/10/2023)
+## v0.4.0 (31/10/2023)
 
  - feat(BaseContext): add embeddings as json (dict)
  - feat: add option to send only the current message instead of the entire conversation in a 'answer' call
