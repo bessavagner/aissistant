@@ -25,6 +25,7 @@ from genaikit.constants import DEBUG
 from genaikit.utils import number_of_tokens
 from genaikit.utils import text_to_embeddings
 from .error import APIContextError
+from .error import MessageError
 
 logger = logging.getLogger('client')
 debugger = logging.getLogger('standard')
@@ -92,7 +93,7 @@ class BaseConversation:
         self.max_tokens = dict(MAX_TOKENS)[self.model]
         self.last_response = None
 
-    def answer(self, prompt, use_agent=True):
+    def answer(self, prompt, use_agent=True, conversation=True):
         """
         Generate a response to the given prompt.
         
@@ -103,10 +104,13 @@ class BaseConversation:
             str: The generated response content.
         """
         self._update(ROLES[1], prompt, use_agent=use_agent)
+        messages = self.messages
+        if not conversation:
+            messages = [self.messages[-1], ]
 
         self.last_response = openai.ChatCompletion.create(
             model=self.model,
-            messages=self.messages,
+            messages=messages,
             temperature=self.temperature
         )
 
@@ -198,7 +202,7 @@ class BaseConversation:
             
             if not reduced:
                 if len(self.messages) == 1:
-                    raise NotImplementedError(
+                    raise MessageError(
                         'Conversation exceeds maximum number of tokens '
                         'and cannot be reduced'
                     )
