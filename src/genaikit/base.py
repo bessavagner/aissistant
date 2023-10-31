@@ -16,15 +16,17 @@ from openai.embeddings_utils import distances_from_embeddings
 
 from dotenv import load_dotenv
 
-from genaikit.constants import ROLES
-from genaikit.constants import MODELS
-from genaikit.constants import MODELS_EMBEDDING
-from genaikit.constants import MAX_TOKENS
-from genaikit.constants import DEBUG
+from .constants import ROLES
+from .constants import MODELS
+from .constants import MODELS_EMBEDDING
+from .constants import MAX_TOKENS
+from .constants import DEBUG
+from .constants import EMBEDDINGS_COLUMNS
 
-from genaikit.utils import number_of_tokens
-from genaikit.utils import text_to_embeddings
+from .utils import number_of_tokens
+from .utils import text_to_embeddings
 from .error import APIContextError
+from .error import ContextError
 from .error import MessageError
 
 logger = logging.getLogger('client')
@@ -231,6 +233,7 @@ class BaseContext:
         
         self.text = text
         self.embeddings = None
+        self.json = "{}"
         self.max_tokens = max_tokens
         
         if text is not None:
@@ -244,7 +247,7 @@ class BaseContext:
     
     def generate_embeddings(
             self,
-            source: str | pd.DataFrame | Path,
+            source: str | pd.DataFrame | Path | dict,
             model: str = MODELS[1],
             max_tokens: int = None
     ) -> pd.DataFrame:
@@ -255,11 +258,24 @@ class BaseContext:
 
         elif isinstance(source, Path):
             self.embeddings = pd.read_parquet(source, engine='pyarrow')
+        elif isinstance(source, dict):
+            if EMBEDDINGS_COLUMNS != tuple(source.keys()):
+                raise ContextError(
+                    f"Keys of `source` must be: {','.join(EMBEDDINGS_COLUMNS)}"
+                )
+            lengths = list(map(len, source.values()))
+            if not all(x == lengths[0] for x in lengths[1:]):
+                raise ContextError(
+                    "Items of `source`must have the same length"
+                )
+            self.json = source
+            self.embeddings = pd.DataFrame(source)
+            return self.embeddings
         else:
             if not isinstance(source, str):
                 raise TypeError(
                     '`source` must either be a DataFrame, '
-                    'Path object or a string'
+                    'Path object, a string or a dict'
                 )
             try:
                 self.embeddings = text_to_embeddings(  # TODO edit embeddings
@@ -274,6 +290,7 @@ class BaseContext:
                     "Try again in a few minutes."
                 )
                 raise APIContextError(message) from err
+        self.json = self.embeddings.to_json(force_ascii=False)
         return self.embeddings
 
     def save_embeddings(
