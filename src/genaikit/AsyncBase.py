@@ -9,19 +9,19 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from .utils import text_to_embeddings
+from .utils import async_text_to_embeddings
 from .constants import MODELS
 from .constants import DEBUG
 
 logger = logging.getLogger('standard')
 
 
-class BaseContext(ABC):
+class AsyncBaseContext(ABC):
     def __init__(self,
                  text: str = None,
                  model: str = MODELS[1],
                  max_tokens: int = 500,
-                 text_to_embeddings_: Callable = text_to_embeddings,
+                 async_text_to_embeddings: Callable = async_text_to_embeddings,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
@@ -68,7 +68,7 @@ class BaseContext(ABC):
         pass
 
 
-class BaseChatter(ABC):
+class AsyncBaseChatter(ABC):
     def __init__(self,
                  set_up: str = None,
                  open_ai_key=None,
@@ -147,7 +147,7 @@ class BaseChatter(ABC):
         """
 
 
-class BaseQuestionContext(ABC):
+class AsyncBaseQuestionContext(ABC):
     
     def __init__(self,
                  *args,  # args for agent
@@ -159,7 +159,7 @@ class BaseQuestionContext(ABC):
         self.history = []
 
     @abstractmethod
-    def answer(self,
+    async def answer(self,
                question: str,
                context: str,
                use_agent=True,

@@ -5,30 +5,29 @@ from typing import Callable
 import pandas as pd
 
 from openai import APIError
-from openai import OpenAI
+from openai import AsyncOpenAI
 
-
-from .base import BaseContext
+from .constants import MODELS, MAX_TOKENS, ROLES
 from .constants import EMBEDDINGS_COLUMNS
 from .constants import MODELS_EMBEDDING
 from .constants import MODELS
 from .constants import DEBUG
-from .errors import ContextError
+from .prompts import CONTEXT_SETUP
 from .errors import APIContextError
-from .utils import text_to_embeddings
+from .errors import ContextError
+from .errors import MessageError
 from .utils import distances_from_embeddings
+from .utils import async_text_to_embeddings
 from .utils import number_of_tokens
 
-from .base import BaseChatter
-from .base import BaseQuestionContext
-from .errors import MessageError
-from .constants import MODELS, MAX_TOKENS, ROLES
-from .prompts import CONTEXT_SETUP
+from .AsyncBase import AsyncBaseQuestionContext
+from .AsyncBase import AsyncBaseContext
+from .AsyncBase import AsyncBaseChatter
 
 logger = logging.getLogger('standard')
 
 
-class Context(BaseContext):
+class AsyncContext(AsyncBaseContext):
     """
     A class representing a context for contextual chat applications.
 
@@ -56,7 +55,7 @@ class Context(BaseContext):
         Returns:
         pd.DataFrame: The generated embeddings.
 
-    - generate_context(question, max_length=1800) -> str:
+    - generate_Asynccontext(question, max_length=1800) -> str:
         Generate a context based on a question.
 
         Parameters:
@@ -71,7 +70,7 @@ class Context(BaseContext):
                  text: str = None,
                  model: str = MODELS[1],
                  max_tokens: int = 500,
-                 text_to_embeddings_: Callable = text_to_embeddings,
+                 async_text_to_embeddings_: Callable = async_text_to_embeddings,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
@@ -79,13 +78,13 @@ class Context(BaseContext):
             text,
             model,
             max_tokens,
-            text_to_embeddings_,
+            async_text_to_embeddings_,
             openai_key=openai_key,
             openai_organization=openai_organization,
             **kwargs
         )
 
-    def generate_embeddings(
+    async def generate_embeddings(
             self,
             source: str | pd.DataFrame | Path | dict = None,
             model: str = MODELS[1],
@@ -120,10 +119,8 @@ class Context(BaseContext):
                     'Path object, a string or a dict'
                 )
             try:
-                self.embeddings = text_to_embeddings(
-                    source,
-                    model=model,
-                    max_tokens=max_tokens
+                self.embeddings = await async_text_to_embeddings(
+                    source, model=model, max_tokens=max_tokens
                 )
             except APIError as err:
                 message = (
@@ -135,17 +132,17 @@ class Context(BaseContext):
         self.json = self.embeddings.to_json(force_ascii=False)
         return self.embeddings
 
-    def generate_context(self,
-                         question: str,
-                         max_length=1800) -> str:
+    async def generate_context(self,
+                               question: str,
+                               max_length=1800) -> str:
         result = []
         current_length = 0
         data = self.embeddings
-        client = OpenAI(
+        client = AsyncOpenAI(
             api_key=self.openai_key, organization=self.openai_organization
         )
 
-        question_embedding = client.embeddings.create(
+        question_embedding = await client.embeddings.create(
             input=question, model=MODELS_EMBEDDING[0]
         )
 
@@ -178,7 +175,7 @@ class Context(BaseContext):
         self.embeddings.to_parquet(path, engine='pyarrow')
 
 
-class Chatter(BaseChatter):
+class AsyncChatter(AsyncBaseChatter):
     def __init__(self,
                  use_gpt4=False,
                  temperature=0,
@@ -231,7 +228,7 @@ class Chatter(BaseChatter):
                 }
             )
 
-    def answer(self, prompt, use_agent=True, conversation=True, **kwargs):
+    async def answer(self, prompt, use_agent=True, conversation=True, **kwargs):
         """
         Generate a response to the given prompt.
 
@@ -246,7 +243,7 @@ class Chatter(BaseChatter):
         Returns:
             str: The generated response content.
         """
-        self._update(ROLES[1], prompt, use_agent=use_agent)
+        await self._update(ROLES[1], prompt, use_agent=use_agent)
         if self.set_up:
             messages = self.messages if conversation else self.messages[-2:]
         else:
@@ -254,7 +251,7 @@ class Chatter(BaseChatter):
                 self.messages[0], self.messages[-1]
             ]
 
-        self.last_response = self.client.chat.completions.create(
+        self.last_response = await self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=self.temperature,
@@ -264,11 +261,11 @@ class Chatter(BaseChatter):
         response_content = self.last_response.choices[0].message.content
         if DEBUG:
             logger.info('Response: %s', response_content)
-        self._update(ROLES[2], response_content, use_agent=use_agent)
+        await self._update(ROLES[2], response_content, use_agent=use_agent)
 
         return response_content
 
-    def _update(self, role: str, content: str, use_agent=True):
+    async def _update(self, role: str, content: str, use_agent=True):
 
         """
         Update the conversation with a new message.
@@ -290,9 +287,9 @@ class Chatter(BaseChatter):
         }
         self.messages.append(message)
         self.messages_backup.append(message)
-        self._reduce_number_of_tokens_if_needed(use_agent)
+        await self._reduce_number_of_tokens_if_needed(use_agent)
 
-    def _reduce_number_of_tokens_if_needed(
+    async def _reduce_number_of_tokens_if_needed(
             self,
             use_agent=True,
             model=None,
@@ -321,7 +318,7 @@ class Chatter(BaseChatter):
                         message['content'] for message in self.messages[:-1]
                     )
 
-                summary_response = self.client.chat.completions.create(
+                summary_response = await self.client.chat.completions.create(
                     model=model,
                     messages=[{'role': ROLES[0], 'content': summary_prompt}],
                     temperature=self.temperature,
@@ -377,7 +374,7 @@ class Chatter(BaseChatter):
                     )
 
 
-class MiniChatter(Chatter):
+class AsyncMiniChatter(AsyncChatter):
     def __init__(self, open_ai_key=None, organization=None, **kwargs):
         """
         Initialize a MiniChatter instance.
@@ -400,7 +397,7 @@ class MiniChatter(Chatter):
         self.max_tokens = dict(MAX_TOKENS)[self.model]
 
 
-class AdvancedChatter(Chatter):
+class AsyncAdvancedChatter(AsyncChatter):
     def __init__(self, open_ai_key=None, organization=None, **kwargs):
         """
         Initialize an AdvancedChatter instance.
@@ -456,7 +453,7 @@ class AdvancedChatter(Chatter):
             self.max_tokens = MAX_TOKENS[model][1]
 
 
-class QuestionContext(BaseQuestionContext):
+class AsyncQuestionContext(AsyncBaseQuestionContext):
     def __init__(self,
                  *args,
                  text: str = None,
@@ -517,10 +514,12 @@ class QuestionContext(BaseQuestionContext):
             "Context: ###\n{}\n###\n"
             "User's question: ###\n{}\n###\n"
         )
-        self.chatter = AdvancedChatter(*args, set_up=CONTEXT_SETUP, **kwargs)
+        self.chatter = AsyncAdvancedChatter(
+            *args, set_up=CONTEXT_SETUP, **kwargs
+        )
         self.chatter.change_model(model)
 
-    def answer(self,
+    async def answer(self,
                      question: str,
                      context: str,
                      use_agent=True,
@@ -548,7 +547,7 @@ class QuestionContext(BaseQuestionContext):
         """
 
         prompt = self.instruction.format(context, question)
-        answer = self.chatter.answer(
+        answer = await self.chatter.answer(
             prompt, use_agent=use_agent, conversation=conversation
         )
         self.history.append({

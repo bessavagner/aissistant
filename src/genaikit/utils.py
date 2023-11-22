@@ -1,171 +1,42 @@
-"""
-    Package "aissistant"
-
-    This module provides helpful objects
-"""
 import re
-import logging
-import subprocess
-
+import asyncio
+from typing import List
 from pathlib import Path
 
 import tiktoken
+
 import pandas as pd
 import numpy as np
+from scipy import spatial
 
-from PyPDF2 import PdfReader
+from openai import OpenAI
+from openai import AsyncOpenAI
 
-from openai import Embedding
 
 from .constants import MODELS
-from .constants import MODELS_EMBEDDING
-from .constants import MAX_TOKENS
 from .constants import EMBEDDINGS_COLUMNS
-
-logger = logging.getLogger("client")
-debugger = logging.getLogger("standard")
-
-
-def important_action(arg=False):
-    if not arg:
-        return None
-    return "Action!"
+from .constants import MODELS_EMBEDDING
+from .constants import TOKENIZER
 
 
 def split_into_sentences(text: str, minimal_length: int = 50) -> list[str]:
+    """
+    Split a text into sentences.
+
+    Parameters:
+    - text (str): The input text.
+    - minimal_length (int, optional): The minimum length of a sentence.
+
+    Returns:
+    list[str]: A list of sentences.
+    """
     sentences = []
     for sentence in text.split(". "):
         if len(sentence) > minimal_length:
             sentences.append(sentence)
     return sentences
 
-
-def token_splitter(
-    text: str,
-    model: str = MODELS[1],
-    max_tokens: int = 500,
-    minimal_length: int = 50
-):
-    encoding = None
-
-    try:
-        encoding = tiktoken.encoding_for_model(model)
-    except KeyError:
-        encoding = tiktoken.get_encoding("cl100k_base")
-
-    sentences = split_into_sentences(text, minimal_length=minimal_length)
-    n_tokens = [
-        len(encoding.encode(" " + sentence)) for sentence in sentences
-    ]
-    
-    # total_tokens = sum(n_tokens)  # TODO manage max_tokens
-    # if total_tokens >= dict(MAX_TOKENS)[model]:
-    #     new_max_tokens = dict(MAX_TOKENS)[model] // len(sentences)
-    #     logger.warning(
-    #         (
-    #             "`max_tokens=%s` produces higher number of "
-    #             "tokens (%s) than the model %s allows. "
-    #             ", Reducing to %s."
-    #         ),
-    #         max_tokens,
-    #         total_tokens,
-    #         model,
-    #         new_max_tokens,
-    #     )
-    #     max_tokens = new_max_tokens
-
-    total_tokens = 0
-    chunks = []
-    tokens = []
-    chunk = []
-
-    if model == MODELS[1]:  # note: future models may require this to change
-        for sentence, n_token in zip(sentences, n_tokens):
-            if total_tokens + n_token > max_tokens and chunk:
-                chunks.append(". ".join(chunk) + ".")
-                tokens.append(total_tokens)
-                chunk = []
-                total_tokens = 0
-
-            if n_token > max_tokens:
-                continue
-
-            chunk.append(sentence)
-            total_tokens += n_token + 1
-        # shortened = []
-
-        # # Loop through the dataframe
-        # for sentence in sentences:
-
-        #     # If the text is None, go to the next row
-        #     if sentence is None:
-        #         continue
-
-        #     # If the number of tokens is greater than the max number of tokens, split the text into chunks
-        #     if len(encoding.encode(sentence)) > max_tokens:
-        #         shortened += split_into_many(sentence, max_tokens)
-
-        #     # Otherwise, add the text to the list of shortened texts
-        #     else:
-        #         shortened.append(sentence)
-        # data = pd.DataFrame(shortened, columns=['chunks'])
-        # data['n_tokens'] = data.chunks.apply(lambda x: len(encoding.encode(x)))
-        array = np.array([chunks, tokens]).T
-        data = pd.DataFrame(array, columns=(
-            EMBEDDINGS_COLUMNS[0], EMBEDDINGS_COLUMNS[1],)
-        )
-        data[EMBEDDINGS_COLUMNS[1]] = data[EMBEDDINGS_COLUMNS[1]].astype('int')
-        return data
-    
-    raise NotImplementedError(  # TODO choose another error
-        f"number_of_tokens() is not presently implemented for model {model}. "
-        "See https://github.com/openai/openai-python/blob/main/chatml.md for "
-        "information on how messages are converted to tokens."
-        ""
-    )
-
-# Function to split the text into chunks of a maximum number of tokens
-def split_into_many(text, max_tokens, model: str = MODELS[1]):
-    tokenizer = None
-
-    try:
-        tokenizer = tiktoken.encoding_for_model(model)
-    except KeyError:
-        tokenizer = tiktoken.get_encoding("cl100k_base")
-
-    # Split the text into sentences
-    sentences = text.split('. ')
-
-    # Get the number of tokens for each sentence
-    n_tokens = [len(tokenizer.encode(" " + sentence)) for sentence in sentences]
-
-    chunks = []
-    tokens_so_far = 0
-    chunk = []
-
-    # Loop through the sentences and tokens joined together in a tuple
-    for sentence, token in zip(sentences, n_tokens):
-
-        # If the number of tokens so far plus the number of tokens in the current sentence is greater
-        # than the max number of tokens, then add the chunk to the list of chunks and reset
-        # the chunk and tokens so far
-        if tokens_so_far + token > max_tokens:
-            chunks.append(". ".join(chunk) + ".")
-            chunk = []
-            tokens_so_far = 0
-
-        # If the number of tokens in the current sentence is greater than the max number of
-        # tokens, go to the next sentence
-        if token > max_tokens:
-            continue
-
-        # Otherwise, add the sentence to the chunk and add the number of tokens to the total
-        chunk.append(sentence)
-        tokens_so_far += token + 1
-
-    return chunks
-
-def number_of_tokens(messages: str|list[str], model: str = MODELS[1]):
+def number_of_tokens(messages: str | list[str], model: str = MODELS[1]):
     """
     Returns the number of tokens used by a list of messages.
 
@@ -235,7 +106,7 @@ def number_of_tokens(messages: str|list[str], model: str = MODELS[1]):
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        encoding = tiktoken.get_encoding("cl100k_base")
+        encoding = tiktoken.get_encoding(TOKENIZER[0])
     if isinstance(messages, str):
         messages = [
             {
@@ -243,8 +114,9 @@ def number_of_tokens(messages: str|list[str], model: str = MODELS[1]):
                 'content': messages
             }
         ]
-    if model == MODELS[1]:  # note: future models may
-        num_tokens = 0  # deviate from this
+    # if model == MODELS[1]:  # note: future models may
+    if True:  # note: future models may
+        num_tokens = 0      # deviate from this
         for message in messages:
             # every message follows
             # <im_start>{role/name}\n{content}<im_end>\n
@@ -262,36 +134,212 @@ def number_of_tokens(messages: str|list[str], model: str = MODELS[1]):
         ""
     )
 
-
-def text_to_embeddings(
-        text: str, model: str = MODELS[1], max_tokens: int = 500
+def token_splitter(
+    text: str,
+    model: str = MODELS[1],
+    max_tokens: int = 500,
+    minimal_length: int = 50
 ):
-    data = token_splitter(text, model, max_tokens)
-    data[EMBEDDINGS_COLUMNS[2]] = data.chunks.apply(lambda x: Embedding.create(
-            input=x, engine=MODELS_EMBEDDING[0]
-        )['data'][0]['embedding']
+    """
+    Split a text into tokens.
+
+    Parameters:
+    - text (str): The input text.
+    - model (str, optional): The model to use for tokenization.
+    - max_tokens (int, optional): The maximum number of tokens per chunk.
+    - minimal_length (int, optional): The minimum length of a sentence.
+
+    Returns:
+    pd.DataFrame: The tokenized data.
+    """
+    encoding = None
+
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")
+
+    sentences = split_into_sentences(text, minimal_length=minimal_length)
+    n_tokens = [
+        len(encoding.encode(" " + sentence)) for sentence in sentences
+    ]
+
+    total_tokens = 0
+    chunks = []
+    tokens = []
+    chunk = []
+
+    # if model == MODELS[1]:  # note: future models may require this to change
+    if True:  # note: future models may require this to change
+        for sentence, n_token in zip(sentences, n_tokens):
+            if total_tokens + n_token > max_tokens and chunk:
+                chunks.append(". ".join(chunk) + ".")
+                tokens.append(total_tokens)
+                chunk = []
+                total_tokens = 0
+
+            if n_token > max_tokens:
+                continue
+
+            chunk.append(sentence)
+            total_tokens += n_token + 1
+
+        array = np.array([chunks, tokens]).T
+        data = pd.DataFrame(array, columns=(
+            EMBEDDINGS_COLUMNS[0], EMBEDDINGS_COLUMNS[1],)
+        )
+        data[EMBEDDINGS_COLUMNS[1]] = data[EMBEDDINGS_COLUMNS[1]].astype('int')
+        return data
+    
+    raise NotImplementedError(  # TODO choose another error
+        f"number_of_tokens() is not presently implemented for model {model}. "
+        "See https://github.com/openai/openai-python/blob/main/chatml.md for "
+        "information on how messages are converted to tokens."
+        ""
     )
-    # data['embeddings'] = data['embeddings'].apply(eval).apply(np.array)
+
+async def async_text_to_embeddings(
+        text: str,
+        model: str = MODELS[1],
+        max_tokens: int = 500,
+        openai_key=None,
+        openai_organization=None
+):
+    """
+    Convert text to embeddings.
+
+    Parameters:
+    - text (str): The input text.
+    - model (str, optional): The model to use for generating embeddings.
+    - max_tokens (int, optional): The maximum number of tokens per chunk.
+    - openai_key (str, optional): The OpenAI API key.
+    - openai_organization (str, optional): The OpenAI organization.
+
+    Returns:
+    pd.DataFrame: The data with embeddings.
+    """
+    data = token_splitter(text, model, max_tokens)
+    client = AsyncOpenAI(api_key=openai_key, organization=openai_organization)
+
+    # Create a list to store the tasks
+    tasks = []
+
+    # Create a coroutine to apply to each row
+    async def create_embedding(row):
+        embedding = await client.embeddings.create(
+            input=row[EMBEDDINGS_COLUMNS[0]],
+            model=MODELS_EMBEDDING[0]
+        )
+        return embedding.data[0].embedding
+
+    # Schedule the coroutines as tasks
+    for _, row in data.iterrows():
+        tasks.append(create_embedding(row))
+
+    # Gather the results
+    embeddings = await asyncio.gather(*tasks)
+
+    # Assign the results to the new column
+    data[EMBEDDINGS_COLUMNS[2]] = embeddings
+
     return data
 
+def text_to_embeddings(
+        text: str,
+        model: str = MODELS[1],
+        max_tokens: int = 500,
+        openai_key=None,
+        openai_organization=None
+):
+    """
+    Convert text to embeddings.
 
-def test_with_flake8(file_path):
-    # Run Flake8 on the file
-    try:
-        result = subprocess.run(
-            ["flake8", file_path], capture_output=True, text=True, check=True
+    Parameters:
+    - text (str): The input text.
+    - model (str, optional): The model to use for generating embeddings.
+    - max_tokens (int, optional): The maximum number of tokens per chunk.
+    - openai_key (str, optional): The OpenAI API key.
+    - openai_organization (str, optional): The OpenAI organization.
+
+    Returns:
+    pd.DataFrame: The data with embeddings.
+    """
+    data = token_splitter(text, model, max_tokens)
+    client = OpenAI(api_key=openai_key, organization=openai_organization)
+
+    # Create a list to store the tasks
+    embeddings = []
+
+    # Create a coroutine to apply to each row
+    def create_embedding(row):
+        embedding = client.embeddings.create(
+            input=row[EMBEDDINGS_COLUMNS[0]],
+            model=MODELS_EMBEDDING[0]
         )
+        return embedding.data[0].embedding
 
-        # Check the return code
-        if result.returncode == 0:
-            logger.info("No Flake8 errors found!")
-            return
-        # Print the Flake8 output
-        logger.info(result.stdout)
-        return result.stdout
-    except subprocess.CalledProcessError as err:
-        return err.output
+    # Schedule the coroutines as tasks
+    for _, row in data.iterrows():
+        embeddings.append(create_embedding(row))
 
+    # Assign the results to the new column
+    data[EMBEDDINGS_COLUMNS[2]] = embeddings
+
+    return data
+
+def distances_from_embeddings(
+    query_embedding: List[float],
+    embeddings: List[List[float]],
+    distance_metric="cosine",
+) -> List[List]:
+    """
+    Calculate distances between a query embedding and a list of embeddings.
+
+    Parameters:
+    - query_embedding (List[float]): The embedding of the query.
+    - embeddings (List[List[float]]): A list of embeddings.
+    - distance_metric (str, optional): The distance metric to use.
+
+    Returns:
+    List[List]: A list of distances.
+    """
+    distance_metrics = {
+        "cosine": spatial.distance.cosine,
+        "L1": spatial.distance.cityblock,
+        "L2": spatial.distance.euclidean,
+        "Linf": spatial.distance.chebyshev,
+    }
+    distances = [
+        distance_metrics[distance_metric](query_embedding, embedding)
+        for embedding in embeddings
+    ]
+    return distances
+
+
+def code_to_str(path: str | Path, comments: str = '#{}'):
+    filepath = Path(path)
+    code = comments.format(filepath.name) + '\n'
+    with open(path, 'r', encoding='utf-8') as file_:
+        code += file_.read()
+    return code
+
+def codes_to_str(path: str | Path,
+                 suffix: str = '.py',
+                 comments: str = '#',
+                 exclude: list[str] = None) -> str:
+    code = ''
+    
+    for item in Path(path).glob(f"*{suffix}"):
+        if exclude and item.name in exclude:
+            continue
+        name = item.name
+        with open(item, 'r', encoding='utf-8') as file_:
+            code += f"{comments} {name}\n{file_.read()}\n"
+    
+    return code
+
+def python_codes_to_str(path: str | Path, exclude: list[str] = None) -> str:
+    return code_to_str(path, exclude=exclude)
 
 def clean_lines_and_spaces(text):
     text = text.replace("\n", " ")
