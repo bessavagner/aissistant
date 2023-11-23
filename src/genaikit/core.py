@@ -71,14 +71,12 @@ class Context(BaseContext):
     """
     def __init__(self,
                  text: str = None,
-                 model: str = MODELS[1],
                  max_tokens: int = 90,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
         super().__init__(
             text,
-            model,
             max_tokens,
             openai_key=openai_key,
             openai_organization=openai_organization,
@@ -111,7 +109,7 @@ class Context(BaseContext):
                     "Items of `source`must have the same length"
                 )
             self.json = source
-            self.embeddings = pd.DataFrame(source)
+            self.embeddings = pd.DataFrame(source, index=None)
             return self.embeddings
         else:
             if not isinstance(source, str):

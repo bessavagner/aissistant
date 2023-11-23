@@ -18,7 +18,6 @@ logger = logging.getLogger('standard')
 class BaseContext(ABC):
     def __init__(self,
                  text: str = None,
-                 model: str = MODELS[1],
                  max_tokens: int = 500,
                  openai_key=None,
                  openai_organization=None,
