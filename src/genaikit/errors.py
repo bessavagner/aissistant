@@ -17,7 +17,6 @@ class ContextError(Exception):
     def __str__(self):
         return self.message
 
-
 class APIContextError(ContextError):
     def __init__(self, message=''):
         super().__init__(message)

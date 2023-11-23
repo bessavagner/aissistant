@@ -96,12 +96,6 @@ class AsyncBaseChatter(ABC):
             "OPENAI_API_ORGANIZATION"
         )
 
-        if not self.open_ai_key:
-            load_dotenv()
-            self.open_ai_key = os.getenv("OPENAI_API_KEY")
-            if not self.open_ai_key:
-                raise RuntimeError("`open_ai_key` not set")
-
         # API setup
         self.client = AsyncOpenAI(
             api_key=self.open_ai_key,

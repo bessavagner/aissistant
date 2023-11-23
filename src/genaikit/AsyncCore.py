@@ -4,13 +4,13 @@ from typing import Callable
 
 import pandas as pd
 
-from openai import APIError
+from openai import InternalServerError
 from openai import AsyncOpenAI
+from openai import APIError
 
 from .constants import MODELS, MAX_TOKENS, ROLES
 from .constants import EMBEDDINGS_COLUMNS
 from .constants import MODELS_EMBEDDING
-from .constants import MODELS
 from .constants import DEBUG
 from .prompts import CONTEXT_SETUP
 from .errors import APIContextError
@@ -19,6 +19,8 @@ from .errors import MessageError
 from .utils import distances_from_embeddings
 from .utils import async_text_to_embeddings
 from .utils import number_of_tokens
+
+from .nlp.processors import TextProcessor
 
 from .AsyncBase import AsyncBaseQuestionContext
 from .AsyncBase import AsyncBaseContext
@@ -119,8 +121,12 @@ class AsyncContext(AsyncBaseContext):
                     'Path object, a string or a dict'
                 )
             try:
-                self.embeddings = await async_text_to_embeddings(
-                    source, model=model, max_tokens=max_tokens
+                self.embeddings = await TextProcessor().async_embeddings(
+                    source,
+                    model=model,
+                    max_tokens=max_tokens,
+                    openai_key=self.openai_key,
+                    openai_organization=self.openai_organization
                 )
             except APIError as err:
                 message = (
@@ -547,9 +553,15 @@ class AsyncQuestionContext(AsyncBaseQuestionContext):
         """
 
         prompt = self.instruction.format(context, question)
-        answer = await self.chatter.answer(
-            prompt, use_agent=use_agent, conversation=conversation
-        )
+        try:
+            answer = await self.chatter.answer(
+                prompt, use_agent=use_agent, conversation=conversation
+            )
+        except InternalServerError as err:
+            return (
+                f"Openai server error: code: {err.code} - "
+                f"message: {err.message}"
+            )
         self.history.append({
             'question': question,
             'answer': answer

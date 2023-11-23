@@ -8,6 +8,7 @@ import tiktoken
 import pandas as pd
 import numpy as np
 from scipy import spatial
+from pypdf import PdfReader
 
 from openai import OpenAI
 from openai import AsyncOpenAI
@@ -36,7 +37,7 @@ def split_into_sentences(text: str, minimal_length: int = 50) -> list[str]:
             sentences.append(sentence)
     return sentences
 
-def number_of_tokens(messages: str | list[str], model: str = MODELS[1]):
+def number_of_tokens(messages: str | list[str], model: str = TOKENIZER[0]):
     """
     Returns the number of tokens used by a list of messages.
 
@@ -103,10 +104,7 @@ def number_of_tokens(messages: str | list[str], model: str = MODELS[1]):
     >>> print(num_tokens)
     8
     """
-    try:
-        encoding = tiktoken.encoding_for_model(model)
-    except KeyError:
-        encoding = tiktoken.get_encoding(TOKENIZER[0])
+    encoding = get_encoding(model)
     if isinstance(messages, str):
         messages = [
             {
@@ -134,6 +132,14 @@ def number_of_tokens(messages: str | list[str], model: str = MODELS[1]):
         ""
     )
 
+def get_encoding(model: str = None):
+    try:
+        if model:
+            return tiktoken.encoding_for_model(model)
+        return tiktoken.get_encoding(TOKENIZER[0])
+    except KeyError:
+        return tiktoken.get_encoding(TOKENIZER[0])
+
 def token_splitter(
     text: str,
     model: str = MODELS[1],
@@ -157,7 +163,7 @@ def token_splitter(
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        encoding = tiktoken.get_encoding("cl100k_base")
+        encoding = tiktoken.get_encoding(TOKENIZER[0])
 
     sentences = split_into_sentences(text, minimal_length=minimal_length)
     n_tokens = [
@@ -378,15 +384,42 @@ def clean_text(text):
     >>> print(sanitized_text)
     Hello This is a sample text with special characters bullet points extra spaces and new lines. The text will be sanitized to remove all these elements.
     """
-    text = re.sub(r'[^\w\s.]', '', text)
+    text = re.sub(r'[^\w\s.;,\'\"]', '', text)
     text = clean_lines_and_spaces(text)
     text = text.replace('•', '')
     text = text.strip()
     return text
 
-def pdf2string(path: str | Path):
+def pdf2text(filename, wdir, clean=True, return_reader=False):
+    """
+    Extract text from a PDF file and optionally clean it.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the PDF file.
+    wdir : str
+        The working directory where the PDF file is located.
+    clean : bool, optional
+        Whether to clean the extracted text. Defaults to True.
+    return_reader : bool, optional
+        Whether to return the PdfReader object. Defaults to False.
+
+    Returns
+    -------
+    str or tuple
+        The extracted text and, optionally, the PdfReader object.
+    """
+    path = Path(wdir) / Path(filename)
+    if path.suffix == "":
+        path = Path(wdir) / Path(f"{filename}.pdf")
     reader = PdfReader(path)
-    entire_text = ''
+    entire_text = ""
     for page in reader.pages:
         entire_text += page.extract_text()
+    if clean:
+        entire_text = clean_text(entire_text)
+    if return_reader:
+        return entire_text, reader
     return entire_text
+

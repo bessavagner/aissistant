@@ -46,4 +46,3 @@ TOKENIZER = (
 )
 
 EMBEDDINGS_COLUMNS = ('chunks', 'n_tokens', 'embeddings',)
-

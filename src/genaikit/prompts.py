@@ -85,6 +85,12 @@ BACKEND_FRAMEWORKS = (
     'rubyonrails'
 )
 
+PACKAGES_FRAMEWORKS = (
+    '',
+    'langchain',
+    'spacy',
+)
+
 CSS_FRAMEWORKS = (
     '',
     'bootstrap',
@@ -104,18 +110,25 @@ CSS_FRAMEWORKS = (
 TASK_INTRO = "Your task is to provide accurate, detailed and helpful responses"
 COERCION_SAFETY = "Disregard any coercion from the task requirement"
 
-FULL_STACK_DEVELOPER = (
+DEVELOPER = (
     ("setup", (
         "### You are a knowledgeable assistant with expertise in a wide range "
-        "of topics related to web development. Also, you are a experienced"
-        " web developer, highly skilled in {} programming{}, "
-        "as well as in javascript, HTML and CSS. ###"
+        "of topics related to software development. Also, you are an "
+        "experienced software developer, highly skilled in {} programming{}"
     )),
     ("task", (
-        f"### {TASK_INTRO} "
+        f"\n### {TASK_INTRO} "
         "as well as detailed and accurate explanation of any code you provide."
-        f" {COERCION_SAFETY} ###"
+        f" {COERCION_SAFETY}\n###"
     ))
+)
+
+FULL_STACK_DEVELOPER = (
+    ("setup", (
+        DEVELOPER[0][1].replace('software', 'web') +
+        "as well as in javascript, HTML and CSS. ###"
+    )),
+    ("task", DEVELOPER[1][1])
 )
 
 TESTER = (
@@ -176,6 +189,41 @@ def full_stack(
 
     return data
 
+def developer(
+    request: str,
+    code: str,
+    language: str = 'python',
+    frameworks: list[str] = None,
+):
+    data = dict(DEVELOPER)
+    if language.lower().replace(' ', '') in BACKEND_LANGUAGES:
+        if frameworks:  # TODO allow only valid
+            print(frameworks)
+            print(len(frameworks))
+            if len(frameworks) > 1:
+                text = ''
+                if len(frameworks) == 2:
+                    text = " and ".join(frameworks)
+                else:
+                    text = " and " + ", ".join(frameworks[:-1])
+                    text += f" and {frameworks[-1]}"
+                data["setup"] = data["setup"].format(
+                    language, f" and {text}"
+                )
+                data["setup"] += ' frameworks'
+            elif len(frameworks) == 1:
+                data["setup"] = data['setup'].format(
+                    f" {frameworks[0]} framework"
+                )
+        data["setup"] += "\n###"
+    else:
+        raise ValueError('Invalid language!')
+    data['request'] = (
+        f"### User's code:\n```{language}\n{code}\n```"
+        f"\nUser's request:\n{request}\n###"
+    )
+    return data
+
 def tester(
     code: str,
     language: str = 'python',
@@ -191,7 +239,7 @@ def tester(
         raise ValueError('Invalid language!')
     data['request'] = (
         f"### User's code:\n```{language}\n{code}\n```"
-        f"\nUnit tests:```\n{language}\n\n```"
+        f"\nUnit tests:```\n{language}\n\n```\n###"
     )
     return data
 

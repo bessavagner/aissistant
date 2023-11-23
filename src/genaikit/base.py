@@ -7,7 +7,7 @@ from typing import Callable
 
 import pandas as pd
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 from .utils import text_to_embeddings
 from .constants import MODELS
@@ -55,7 +55,7 @@ class BaseContext(ABC):
         return {}
 
     @abstractmethod
-    async def generate_embeddings(
+    def generate_embeddings(
             self,
             source: str | pd.DataFrame | Path | dict,
             model: str = MODELS[1],
@@ -64,7 +64,7 @@ class BaseContext(ABC):
         pass
 
     @abstractmethod
-    async def generate_context(self, question: str, max_length=1800) -> str:
+    def generate_context(self, question: str, max_length=1800) -> str:
         pass
 
 
@@ -96,14 +96,8 @@ class BaseChatter(ABC):
             "OPENAI_API_ORGANIZATION"
         )
 
-        if not self.open_ai_key:
-            load_dotenv()
-            self.open_ai_key = os.getenv("OPENAI_API_KEY")
-            if not self.open_ai_key:
-                raise RuntimeError("`open_ai_key` not set")
-
         # API setup
-        self.client = AsyncOpenAI(
+        self.client = OpenAI(
             api_key=self.open_ai_key,
             organization=self.organization,
             **kwargs
@@ -113,7 +107,7 @@ class BaseChatter(ABC):
         self.set_up = set_up
 
     @abstractmethod
-    async def answer(self, prompt, **kwargs):
+    def answer(self, prompt, **kwargs):
         """
         Generate a response to the given prompt.
 
@@ -137,7 +131,7 @@ class BaseChatter(ABC):
         """
 
     @abstractmethod
-    async def _reduce_number_of_tokens_if_needed(self, **kwargs):
+    def _reduce_number_of_tokens_if_needed(self, **kwargs):
         """
         Reduce messages using self.client.chat.completions.create.
 

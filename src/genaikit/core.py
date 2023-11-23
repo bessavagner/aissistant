@@ -8,22 +8,23 @@ from openai import APIError
 from openai import OpenAI
 
 
-from .base import BaseContext
+from .constants import MODELS, MAX_TOKENS, ROLES
 from .constants import EMBEDDINGS_COLUMNS
 from .constants import MODELS_EMBEDDING
-from .constants import MODELS
 from .constants import DEBUG
+from .prompts import CONTEXT_SETUP
+from .errors import MessageError
 from .errors import ContextError
 from .errors import APIContextError
 from .utils import text_to_embeddings
 from .utils import distances_from_embeddings
 from .utils import number_of_tokens
-
-from .base import BaseChatter
 from .base import BaseQuestionContext
-from .errors import MessageError
-from .constants import MODELS, MAX_TOKENS, ROLES
-from .prompts import CONTEXT_SETUP
+from .base import BaseContext
+from .base import BaseChatter
+
+from .nlp.processors import TextProcessor
+
 
 logger = logging.getLogger('standard')
 
@@ -120,10 +121,12 @@ class Context(BaseContext):
                     'Path object, a string or a dict'
                 )
             try:
-                self.embeddings = text_to_embeddings(
+                self.embeddings = TextProcessor().embeddings(
                     source,
                     model=model,
-                    max_tokens=max_tokens
+                    max_tokens=max_tokens,
+                    openai_key=self.openai_key,
+                    openai_organization=self.openai_organization
                 )
             except APIError as err:
                 message = (
@@ -461,7 +464,7 @@ class QuestionContext(BaseQuestionContext):
                  *args,
                  text: str = None,
                  set_up: str = None,
-                 model=MODELS[1],  # context and agent's model
+                 model=MODELS[0],  # context and agent's model
                  **kwargs):  # agent's **kwargs
         """
         Initialize a QuestionContext instance.
@@ -521,10 +524,10 @@ class QuestionContext(BaseQuestionContext):
         self.chatter.change_model(model)
 
     def answer(self,
-                     question: str,
-                     context: str,
-                     use_agent=True,
-                     conversation=True):
+               question: str,
+               context: str,
+               use_agent=True,
+               conversation=True):
         """
         Generate an answer for the given question and context.
 

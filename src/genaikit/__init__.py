@@ -14,20 +14,22 @@ from . import core  # The core module is the packages's API
 from . import AsyncCore  # The core module is the packages's API
 from . import base
 from . import AsyncBase
-from . import data
 from . import utils
 from . import constants
+from . import nlp
 
 from .core import (
     Chatter,
     MiniChatter,
     AdvancedChatter,
+    Context,
     QuestionContext
 )
 from .AsyncCore import (
     AsyncChatter,
     AsyncMiniChatter,
     AsyncAdvancedChatter,
+    AsyncContext,
     AsyncQuestionContext
 )
 
@@ -42,6 +44,6 @@ __all__ = [
     'AsyncCore',
     'base',
     'AsyncBase',
-    'data',
     'utils',
+    'nlp'
 ]
