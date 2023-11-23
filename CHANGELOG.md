@@ -3,6 +3,13 @@
 <!--next-version-placeholder-->
 
 
+## v1.1.0 (23/11/2023)
+
+ - feat: add support to async.
+ - Major modification: Conversation was named as Chatter and QuestionContext doesn't handle anymore the context: use Context class's instance to generate a context text. This behavior is temporally and will be incorporate back to QuestionContext in further releases.
+ - Add text processors and extractor (pdf only)
+ - Implement semantic segmentation
+
 ## v0.4.0 (31/10/2023)
 
  - feat(BaseContext): add embeddings as json (dict)
