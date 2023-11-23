@@ -9,7 +9,6 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from .utils import async_text_to_embeddings
 from .constants import MODELS
 from .constants import DEBUG
 
@@ -21,7 +20,6 @@ class AsyncBaseContext(ABC):
                  text: str = None,
                  model: str = MODELS[1],
                  max_tokens: int = 500,
-                 async_text_to_embeddings: Callable = async_text_to_embeddings,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):

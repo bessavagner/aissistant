@@ -17,14 +17,13 @@ from .errors import APIContextError
 from .errors import ContextError
 from .errors import MessageError
 from .utils import distances_from_embeddings
-from .utils import async_text_to_embeddings
 from .utils import number_of_tokens
 
 from .nlp.processors import TextProcessor
 
-from .AsyncBase import AsyncBaseQuestionContext
-from .AsyncBase import AsyncBaseContext
-from .AsyncBase import AsyncBaseChatter
+from .async_base import AsyncBaseQuestionContext
+from .async_base import AsyncBaseContext
+from .async_base import AsyncBaseChatter
 
 logger = logging.getLogger('standard')
 
@@ -37,8 +36,6 @@ class AsyncContext(AsyncBaseContext):
     - text (str, optional): The initial text for the context.
     - model (str, optional): The model to use for generating embeddings.
     - max_tokens (int, optional): The maximum number of tokens per chunk.
-    - text_to_embeddings_ (Callable, optional): A function to convert text
-        to embeddings.
     - openai_key (str, optional): The OpenAI API key.
     - openai_organization (str, optional): The OpenAI organization.
     - **kwargs: Additional keyword arguments.
@@ -72,7 +69,6 @@ class AsyncContext(AsyncBaseContext):
                  text: str = None,
                  model: str = MODELS[1],
                  max_tokens: int = 500,
-                 async_text_to_embeddings_: Callable = async_text_to_embeddings,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
@@ -80,7 +76,6 @@ class AsyncContext(AsyncBaseContext):
             text,
             model,
             max_tokens,
-            async_text_to_embeddings_,
             openai_key=openai_key,
             openai_organization=openai_organization,
             **kwargs

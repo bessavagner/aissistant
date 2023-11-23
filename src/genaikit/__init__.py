@@ -11,9 +11,9 @@ from logging.config import dictConfig
 from genaikit.settings import CONFIG_LOG
 
 from . import core  # The core module is the packages's API
-from . import AsyncCore  # The core module is the packages's API
+from . import async_core  # The core module is the packages's API
 from . import base
-from . import AsyncBase
+from . import async_base
 from . import utils
 from . import constants
 from . import nlp
@@ -25,7 +25,7 @@ from .core import (
     Context,
     QuestionContext
 )
-from .AsyncCore import (
+from .async_core import (
     AsyncChatter,
     AsyncMiniChatter,
     AsyncAdvancedChatter,
@@ -41,9 +41,9 @@ logging.getLogger(__name__).addHandler(NullHandler())
 __all__ = [
     'constants',
     'core',
-    'AsyncCore',
+    'async_core',
     'base',
-    'AsyncBase',
+    'async_base',
     'utils',
     'nlp'
 ]
