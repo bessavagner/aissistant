@@ -8,7 +8,6 @@ import pandas as pd
 
 from openai import OpenAI, AsyncOpenAI
 
-from genaikit.constants import TOKENIZER
 from genaikit.constants import MODELS
 from genaikit.constants import EMBEDDINGS_COLUMNS
 from genaikit.constants import MODELS_EMBEDDING

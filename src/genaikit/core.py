@@ -19,6 +19,7 @@ from .errors import APIContextError
 from .utils import text_to_embeddings
 from .utils import distances_from_embeddings
 from .utils import number_of_tokens
+from .utils import clean_text
 from .base import BaseQuestionContext
 from .base import BaseContext
 from .base import BaseChatter
@@ -71,8 +72,7 @@ class Context(BaseContext):
     def __init__(self,
                  text: str = None,
                  model: str = MODELS[1],
-                 max_tokens: int = 500,
-                 text_to_embeddings_: Callable = text_to_embeddings,
+                 max_tokens: int = 90,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
@@ -80,7 +80,6 @@ class Context(BaseContext):
             text,
             model,
             max_tokens,
-            text_to_embeddings_,
             openai_key=openai_key,
             openai_organization=openai_organization,
             **kwargs

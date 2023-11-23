@@ -370,7 +370,7 @@ def clean_text(text):
     -------
     str
         The sanitized text without special characters and extra spaces,
-        but with periods retained.
+        but with periods, colons and semi-colons retained.
 
     Examples
     --------

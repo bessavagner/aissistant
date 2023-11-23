@@ -9,7 +9,6 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from .utils import text_to_embeddings
 from .constants import MODELS
 from .constants import DEBUG
 
@@ -21,7 +20,6 @@ class BaseContext(ABC):
                  text: str = None,
                  model: str = MODELS[1],
                  max_tokens: int = 500,
-                 text_to_embeddings_: Callable = text_to_embeddings,
                  openai_key=None,
                  openai_organization=None,
                  **kwargs):
