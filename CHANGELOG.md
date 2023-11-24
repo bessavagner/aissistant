@@ -3,6 +3,10 @@
 <!--next-version-placeholder-->
 
 
+## v1.2.0 (24/11/2023)
+
+ - fix: convert dataframe to json
+
 ## v1.1.0 (23/11/2023)
 
  - feat: add support to async.
