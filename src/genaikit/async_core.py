@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import Callable
@@ -130,7 +131,17 @@ class AsyncContext(AsyncBaseContext):
                     "Try again in a few minutes."
                 )
                 raise APIContextError(message) from err
-        self.json = self.embeddings.to_json(force_ascii=False)
+        data = json.loads(
+            self.embeddings.to_json(
+                orient='table',
+                index=False,
+                force_ascii=False
+            )
+        )['data']
+        self.json = {column: [] for column in EMBEDDINGS_COLUMNS}
+        for row in data:
+            for key, value in row.items():
+                self.json[key].append(value)
         return self.embeddings
 
     async def generate_context(self,
