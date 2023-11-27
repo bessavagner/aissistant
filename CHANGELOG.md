@@ -3,6 +3,11 @@
 <!--next-version-placeholder-->
 
 
+## v1.3.0 (27/11/2023)
+
+ - refactor: improve pdf reader
+ - fix: pypdf dependency
+
 ## v1.2.0 (24/11/2023)
 
  - fix: convert dataframe to json
